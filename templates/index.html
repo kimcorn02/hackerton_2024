@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Chat & Document Generator</title>
+</head>
+<body>
+    <h1>Chat & Document Generator</h1>
+
+    <!-- Chat Section -->
+    <h2>Chat</h2>
+    <input type="text" id="chat-input" placeholder="Enter your question">
+    <button onclick="sendChat()">Send Chat</button>
+    <button onclick="window.location.href = '/chat'">Go to Chat Page</button> <!-- /chat 경로로 이동 버튼 -->
+    <pre id="chat-output"></pre>
+
+    <!-- Document Generation Section -->
+    <h2>Generate Document</h2>
+    <button onclick="generateDocument()">Generate Document</button>
+    <pre id="document-output"></pre>
+
+    <script>
+        // URL of the Flask server
+        const baseUrl = "http://127.0.0.1:5000";
+
+        // Chat function to send a user question and receive a response
+        async function sendChat() {
+            const question = document.getElementById("chat-input").value;
+            const chatOutput = document.getElementById("chat-output");
+
+            try {
+                const response = await fetch(`${baseUrl}/chat`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                const result = await response.json();
+                chatOutput.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                chatOutput.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Document generation function that calls the /documentation endpoint
+        async function generateDocument() {
+            const documentOutput = document.getElementById("document-output");
+
+            try {
+                const response = await fetch(`${baseUrl}/documentation`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user_data: {
+                            kor_name: "김지원",
+                            eng_name: "Jiwon Kim",
+                            phone_no: "010-1234-5678",
+                            email: "jiwon@example.com",
+                            cnt_address: "서울시",
+                            education: [
+                                {
+                                    duration: "2019-2023",
+                                    school_name: "Sungkyunkwan University",
+                                    major: "Artificial Intelligence",
+                                    note: "Graduated with honors"
+                                }
+                            ],
+                            prac_exp: [
+                                {
+                                    duration: "2023",
+                                    workplace: "Tech Company",
+                                    duty: "Intern",
+                                    retire_reason: "Contract Ended"
+                                }
+                            ],
+                            other_exp: [
+                                {
+                                    duration: "2021",
+                                    workplace: "Non-Profit Org",
+                                    duty: "Volunteer",
+                                    retire_reason: "Project Completion"
+                                }
+                            ]
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                documentOutput.textContent = JSON.stringify(result, null, 2);
+
+                if (result.file_path) {
+                    documentOutput.innerHTML += `<p>Download the document <a href="${baseUrl}/${result.file_path}">here</a>.</p>`;
+                }
+            } catch (error) {
+                documentOutput.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
